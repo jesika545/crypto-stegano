@@ -1,106 +1,208 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+def bin_to_decimal_steps(bstr):
+    b = bstr.strip()
+    steps = []
+    total = 0
+    n = len(b)
+    for i, bit in enumerate(reversed(b)):
+        val = int(bit) * (2 ** i)
+        steps.append(f"{bit} × 2^{i} = {val}")
+        total += val
+    # build formula left-to-right
+    formula = " + ".join([f"{b[j]}×2^{n-j-1}" for j in range(n)])
+    full_steps = "Langkah (Biner -> Desimal):\n" + "\n".join(reversed(steps)) + f"\n\nRumus: {formula}\nTotal = {total}"
+    return total, full_steps
 
-# Fungsi konversi utama
-def convert_number():
-    try:
-        base_from = base_from_var.get()
-        base_to = base_to_var.get()
-        number = entry_number.get().strip()
+def decimal_to_hex_steps(dec):
+    if dec == 0:
+        return "0", "Langkah (Desimal -> Hexa):\n0"
+    simbol = "0123456789ABCDEF"
+    n = dec
+    steps = []
+    hasil = ""
+    while n > 0:
+        q = n // 16
+        r = n % 16
+        steps.append(f"{n} ÷ 16 = {q} sisa {r} -> '{simbol[r]}'")
+        hasil = simbol[r] + hasil
+        n = q
+    full = "Langkah (Desimal -> Hexa):\n" + "\n".join(steps) + f"\nHasil Hexa = {hasil}"
+    return hasil, full
 
-        if not number:
-            messagebox.showwarning("Peringatan", "Masukkan angka terlebih dahulu!")
-            return
+def bin_to_hex_steps(bstr):
+    dec, steps_dec = bin_to_decimal_steps(bstr)
+    hexa, steps_hex = decimal_to_hex_steps(dec)
+    full = steps_dec + "\n\n" + steps_hex
+    return hexa, full
 
-        # Konversi ke desimal dulu
-        if base_from == "Desimal":
-            decimal_value = int(number)
-        elif base_from == "Biner":
-            decimal_value = int(number, 2)
-        elif base_from == "Oktal":
-            decimal_value = int(number, 8)
-        elif base_from == "Hexa":
-            decimal_value = int(number, 16)
+def oct_to_decimal_steps(ostr):
+    o = ostr.strip()
+    steps = []
+    total = 0
+    n = len(o)
+    for i, digit in enumerate(reversed(o)):
+        val = int(digit) * (8 ** i)
+        steps.append(f"{digit} × 8^{i} = {val}")
+        total += val
+    formula = " + ".join([f"{o[j]}×8^{n-j-1}" for j in range(n)])
+    full_steps = "Langkah (Oktal -> Desimal):\n" + "\n".join(reversed(steps)) + f"\n\nRumus: {formula}\nTotal = {total}"
+    return total, full_steps
 
-        # Konversi dari desimal ke basis target
-        if base_to == "Desimal":
-            result = str(decimal_value)
-        elif base_to == "Biner":
-            result = bin(decimal_value)[2:]
-        elif base_to == "Oktal":
-            result = oct(decimal_value)[2:]
-        elif base_to == "Hexa":
-            result = hex(decimal_value)[2:].upper()
+def decimal_to_bin_steps(dec):
+    if dec == 0:
+        return "0", "Langkah (Desimal -> Biner):\n0"
+    n = dec
+    steps = []
+    bits = ""
+    while n > 0:
+        q = n // 2
+        r = n % 2
+        steps.append(f"{n} ÷ 2 = {q} sisa {r}")
+        bits = str(r) + bits
+        n = q
+    full = "Langkah (Desimal -> Biner):\n" + "\n".join(steps) + f"\nHasil Biner = {bits}"
+    return bits, full
 
-        result_label.config(text=f"Hasil: {result}")
-        global last_process
-        last_process = f"{number} ({base_from}) -> {result} ({base_to})"
+def oct_to_hex_steps(ostr):
+    dec, step_dec = oct_to_decimal_steps(ostr)
+    hexa, step_hex = decimal_to_hex_steps(dec)
+    full = step_dec + "\n\n" + step_hex
+    return hexa, full
 
-    except ValueError:
-        messagebox.showerror("Error", "Angka yang dimasukkan tidak valid!")
+def hex_to_decimal_steps(hstr):
+    s = hstr.strip().upper()
+    simbol = "0123456789ABCDEF"
+    steps = []
+    total = 0
+    n = len(s)
+    for i, ch in enumerate(reversed(s)):
+        val_digit = simbol.index(ch)
+        val = val_digit * (16 ** i)
+        steps.append(f"{ch} × 16^{i} = {val} (digit value {val_digit})")
+        total += val
+    formula = " + ".join([f"{s[j]}×16^{n-j-1}" for j in range(n)])
+    full_steps = "Langkah (Hexa -> Desimal):\n" + "\n".join(reversed(steps)) + f"\n\nRumus: {formula}\nTotal = {total}"
+    return total, full_steps
 
-# Fungsi menampilkan proses di belakang layar
-def show_process():
-    if last_process:
-        messagebox.showinfo("Proses Konversi", last_process)
-    else:
-        messagebox.showinfo("Proses Konversi", "Belum ada konversi yang dilakukan.")
+def hex_to_bin_steps(hstr):
+    dec, step_dec = hex_to_decimal_steps(hstr)
+    bstr, step_bin = decimal_to_bin_steps(dec)
+    full = step_dec + "\n\n" + step_bin
+    return bstr, full
 
-# === UI ===
-root = tk.Tk()
-root.title("Kalkulator Konversi Bilangan")
-root.geometry("500x400")
-root.config(bg="#e8f0fe")
+def hex_to_oct_steps(hstr):
+    dec, step_dec = hex_to_decimal_steps(hstr)
+    # Decimal -> Octal steps (division by 8)
+    if dec == 0:
+        return "0", step_dec + "\n\nLangkah (Desimal -> Oktal):\n0"
+    n = dec
+    steps = []
+    digs = ""
+    while n > 0:
+        q = n // 8
+        r = n % 8
+        steps.append(f"{n} ÷ 8 = {q} sisa {r}")
+        digs = str(r) + digs
+        n = q
+    full = step_dec + "\n\nLangkah (Desimal -> Oktal):\n" + "\n".join(steps) + f"\nHasil Oktal = {digs}"
+    return digs, full
 
-title_label = tk.Label(
-    root,
-    text="🔢 Kalkulator Konversi Bilangan 🔢",
-    font=("Segoe UI", 16, "bold"),
-    bg="#e8f0fe",
-    fg="#1a237e"
-)
-title_label.pack(pady=15)
+# Validasi helper
+def is_valid_binary(s):
+    return all(ch in "01" for ch in s) and s != ""
 
-# Frame utama
-main_frame = ttk.Frame(root, padding=20)
-main_frame.pack(fill="both", expand=True)
+def is_valid_octal(s):
+    return all(ch in "01234567" for ch in s) and s != ""
 
-# Input angka
-ttk.Label(main_frame, text="Masukkan Angka:").grid(row=0, column=0, sticky="w")
-entry_number = ttk.Entry(main_frame, font=("Segoe UI", 12))
-entry_number.grid(row=0, column=1, padx=10, pady=5)
+def is_valid_hex(s):
+    s = s.strip()
+    if s == "":
+        return False
+    s = s.upper()
+    return all(ch in "0123456789ABCDEF" for ch in s)
 
-# Pilihan basis
-bases = ["Desimal", "Biner", "Oktal", "Hexa"]
-base_from_var = tk.StringVar(value="Desimal")
-base_to_var = tk.StringVar(value="Biner")
+# Menu sesuai permintaan dosen
+def main_menu():
+    while True:
+        print("\n=== MENU KONVERSI ===")
+        print("1) Konversi bilangan Biner ke Desimal, Hexadesimal")
+        print("2) Konversi bilangan Oktal ke Desimal, Biner dan Hexadesimal")
+        print("3) Konversi bilangan Hexadesimal ke Desimal, Biner dan Oktal")
+        print("4) Keluar")
+        pilih = input("Pilih menu (1-4): ").strip()
 
-ttk.Label(main_frame, text="Dari Basis:").grid(row=1, column=0, sticky="w", pady=5)
-ttk.OptionMenu(main_frame, base_from_var, *bases).grid(row=1, column=1, sticky="ew", padx=10)
+        if pilih == "1":
+            b = input("Masukkan bilangan Biner: ").strip()
+            if not is_valid_binary(b):
+                print("Input tidak valid. Masukkan hanya karakter 0 dan 1.")
+                continue
+            # Biner -> Desimal
+            dec, step_dec = bin_to_decimal_steps(b)
+            print(f"\nHasil (Biner -> Desimal): {dec}")
+            lihat = input("Lihat proses manual (Desimal)? (y/n): ").strip().lower()
+            if lihat == "y":
+                print("\n" + step_dec)
 
-ttk.Label(main_frame, text="Ke Basis:").grid(row=2, column=0, sticky="w", pady=5)
-ttk.OptionMenu(main_frame, base_to_var, *bases).grid(row=2, column=1, sticky="ew", padx=10)
+            # Biner -> Hexadesimal
+            hexa, step_hex = bin_to_hex_steps(b)
+            print(f"\nHasil (Biner -> Hexadesimal): {hexa}")
+            lihat2 = input("Lihat proses manual (Hexa)? (y/n): ").strip().lower()
+            if lihat2 == "y":
+                print("\n" + step_hex)
 
-# Tombol konversi
-convert_button = ttk.Button(main_frame, text="Hitung", command=convert_number)
-convert_button.grid(row=3, column=0, columnspan=2, pady=15)
+        elif pilih == "2":
+            o = input("Masukkan bilangan Oktal: ").strip()
+            if not is_valid_octal(o):
+                print("Input tidak valid. Oktal hanya mengandung digit 0-7.")
+                continue
+            # Oktal -> Desimal
+            dec, step_dec = oct_to_decimal_steps(o)
+            print(f"\nHasil (Oktal -> Desimal): {dec}")
+            if input("Lihat proses manual (Desimal)? (y/n): ").strip().lower() == "y":
+                print("\n" + step_dec)
 
-# Hasil
-result_label = tk.Label(root, text="Hasil: ", font=("Consolas", 14, "bold"), bg="#e8f0fe", fg="#0d47a1")
-result_label.pack(pady=10)
+            # Oktal -> Biner (via desimal)
+            biner, step_bin = decimal_to_bin_steps(dec)
+            print(f"\nHasil (Oktal -> Biner): {biner}")
+            if input("Lihat proses manual (Biner)? (y/n): ").strip().lower() == "y":
+                # show both: oct->dec steps + dec->bin steps for clarity
+                print("\n-- Konversi Oktal -> Desimal --\n" + step_dec)
+                print("\n-- Konversi Desimal -> Biner --\n" + step_bin)
 
-# Tombol lihat proses
-see_process_button = ttk.Button(root, text="Lihat Proses di Balik Layar", command=show_process)
-see_process_button.pack(pady=10)
+            # Oktal -> Hexa (via desimal)
+            hexa, step_hex = oct_to_hex_steps(o)
+            print(f"\nHasil (Oktal -> Hexadesimal): {hexa}")
+            if input("Lihat proses manual (Hexa)? (y/n): ").strip().lower() == "y":
+                print("\n" + step_hex)
 
-# Variabel global
-last_process = ""
+        elif pilih == "3":
+            h = input("Masukkan bilangan Hexadesimal: ").strip()
+            if not is_valid_hex(h):
+                print("Input tidak valid. Hexa hanya mengandung 0-9 dan A-F (atau a-f).")
+                continue
+            # Hexa -> Desimal
+            dec, step_dec = hex_to_decimal_steps(h)
+            print(f"\nHasil (Hexa -> Desimal): {dec}")
+            if input("Lihat proses manual (Desimal)? (y/n): ").strip().lower() == "y":
+                print("\n" + step_dec)
 
-# Gaya modern
-style = ttk.Style()
-style.theme_use("clam")
-style.configure("TButton", font=("Segoe UI", 11), padding=6)
-style.configure("TLabel", font=("Segoe UI", 11))
-style.configure("TEntry", font=("Segoe UI", 11))
+            # Hexa -> Biner (via desimal)
+            biner, step_bin = hex_to_bin_steps(h)
+            print(f"\nHasil (Hexa -> Biner): {biner}")
+            if input("Lihat proses manual (Biner)? (y/n): ").strip().lower() == "y":
+                print("\n-- Konversi Hexa -> Desimal --\n" + step_dec)
+                print("\n-- Konversi Desimal -> Biner --\n" + step_bin)
 
-root.mainloop()
+            # Hexa -> Oktal (via desimal)
+            okt, step_okt = hex_to_oct_steps(h)
+            print(f"\nHasil (Hexa -> Oktal): {okt}")
+            if input("Lihat proses manual (Oktal)? (y/n): ").strip().lower() == "y":
+                print("\n" + step_okt)
+
+        elif pilih == "4":
+            print("Selesai. Terima kasih!")
+            break
+        else:
+            print("Pilihan tidak valid. Coba lagi.")
+
+if __name__ == "__main__":
+    main_menu()
